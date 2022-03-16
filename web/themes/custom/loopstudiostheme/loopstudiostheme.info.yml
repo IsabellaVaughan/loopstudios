@@ -1,0 +1,36 @@
+name: Loopstudios Theme
+type: theme
+description: Theme for loopstudios brand
+core_version_requirement: ^9
+base theme: bartik
+logo: 'logo.svg'
+favicon: 'logo.svg'
+
+
+regions:
+  header: "Header"
+  content: "Content"
+  content_bottom: "Content (bottom)"
+  sidebar_first: "Sidebar First"
+  sidebar_second: "Sidebar Second"
+  primary_menu: "Primary menu"
+  secondary_menu: "Secondary menu"
+  banner_top: "Banner (top)"
+  banner_bottom: "Banner (bottom)"
+  footer: "Footer"
+  page_top: "Page top"
+  page_bottom: "Page bottom"
+  menu_bar: "Menu bar"
+  highlighted: "Highlighted"
+  breadcrumb: "Breadcrumb"
+  footer_first: "Footer first"
+  footer_second: "Footer second"
+  footer_third: "Footer third"
+  footer_fourth: "Footer fourth"
+  footer_fifth: "Footer fifth"
+
+libraries:
+  - loopstudiostheme/global-css
+  - loopstudiostheme/lato
+  - loopstudiostheme/josefin_sans
+  - loopstudiostheme/alata

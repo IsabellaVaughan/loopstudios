@@ -1,0 +1,32 @@
+global-css:
+  version: VERSION
+  css:
+    theme:
+      css/styles.css: {}
+
+lato:
+  license:
+    name: SIL Open Font License 1.1
+    url: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL
+  css:
+    theme:
+      //fonts.googleapis.com/css2?family=Lato:wght@100;300&display=swap: { type: external }
+      css/styles.css: {}
+
+josefin_sans:
+  license:
+    name: SIL Open Font License 1.1
+    url: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL
+  css:
+    theme:
+      //fonts.googleapis.com/css2?family=Josefin+Sans:wght@300&display=swap: { type: external }
+      css/styles.css: {}
+
+alata:
+  license:
+    name: SIL Open Font License 1.1
+    url: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL
+  css:
+    theme:
+      //fonts.googleapis.com/css2?family=Alata&display=swap: { type: external }
+      css/styles.css: {}
