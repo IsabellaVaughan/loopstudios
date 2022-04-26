@@ -1,0 +1,11 @@
+name: Image Replace Effect
+type: module
+description: 'Provides an image style effect capable of replacing the whole image with another one.'
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:image
+
+# Information added by Drupal.org packaging script on 2020-12-06
+version: '8.x-1.0'
+project: 'image_replace'
+datestamp: 1607260971

@@ -1,7 +1,7 @@
 /* Base font and sizing for content */
 
-html {
-    font-family: "Alata";
+body {
+    font: 15px "Alata";
 }
 
 li span.fab {
@@ -17,13 +17,30 @@ a, a:link {
     float: right;
 }
 
+/* Admin bar styling */
+
+/*-- Fix for over-sized elements causing some selections to be cut off at the bottom of the screen --*/
+.toolbar-menu-administration .toolbar-menu li.menu-item, li.menu-item a.toolbar-icon {
+    margin-bottom: 0;
+}
+/*-- Fix for arrow image distortion on toolbar elements when not hovering on --*/
+.toolbar-tray-horizontal ul li.menu-item--expanded ul li.menu-item--expanded {
+    background-size: auto;
+}
+
+@media screen and (min-width: 640px) {
+.views-view-grid.horizontal .views-row {
+    border-bottom: none;
+}
+}
+
 /* Header font styling */
 
 .views-field-title h1 {
-    font-size: 1.6em;
+    font-size: 1.45em;
 }
 
-.site-branding__slogan, h1 {
+.site-branding__slogan, h1, h2.leader-vr-heading {
     font-family: "Josefin Sans";
 }
 
@@ -49,9 +66,68 @@ div.region-header {
 
 nav .menu-item a.is-active:hover {
     background-color: transparent;
-    font-weight: bolder;
 }
 
+/* Leader in VR section */
+
+h2.leader-vr-heading {
+    display: inline;
+    text-transform: uppercase;
+    font-size: 2.5em;
+}
+
+p.leader-vr-paragraph {
+    font-size: 1em;
+    color: #8e8e8e;
+    padding-top: 20px;
+}
+
+div.leader-vr-container {
+    width: 450px;
+    float: right;
+    position: relative;
+    bottom: 310px;
+    background-color: white;
+    padding: 80px 80px 0 80px;
+    right: 40px;
+}
+
+
+/* See all button styling */
+
+button.see-all-button {
+    font: 16px "Alata";
+    letter-spacing: 0.2em;
+    background-color: #FFFFFF;
+    border: 1px solid #000000;
+    color: #000000;
+    padding: 10px 45px;
+    float: right;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    margin: 4px 46px 4px 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: color 400ms, background-color 400ms;
+}
+
+button.see-all-button:hover, button.see-all-button:focus {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+button.see-all-button:active {
+    animation-name: flash-click;
+    animation-duration: 400ms;
+}
+
+/* Keyframe animation to flash button colour on click */
+
+@keyframes flash-click {  
+    from { background-color: #FFFFFF; color: #000000; }
+    to   { background-color: default; color: default; }
+}
 
 /* Main nav */
 
@@ -86,13 +162,21 @@ li.menu-item.menu-item--active-trail li.menu-item a.is-active {
     margin-bottom: 80px;
 }
 
+header {
+    margin-bottom: 100px;
+}
+
 /* Image styling for page teasers */
 
-.prev-img img:hover {
+
+.prev-img, .prev-img-mobile {
+    filter: brightness(65%);
+}
+.prev-img img:hover, .prev-img-mobile img:hover {
     filter: sepia(80%) opacity(50%);
 }
 
-.prev-img img {
+.prev-img img, .prev-img-mobile img {
     transition: filter 350ms;
 }
 
@@ -124,37 +208,54 @@ div.views-field.views-field-field-preview-image {
 }
 
 .site-branding__text .site-branding__slogan {
-    font-size: 5rem;
+    font-size: 4.35rem;
     font-style: normal;
-    width: 60%;
+    width: 50%;
     line-height: 1;
     font-weight: 300;
-    padding: 0.4em 0 0.4em 0.5em;
+    padding: 0.5em 0 0.5em 0.5em;
     border: 2px solid hsl(0, 0%, 100%);
+    text-transform: uppercase;
 }
 
 
+/* Page title */
 
-/* Underline from center on hover */
-a, li.menu-item {
+h1.page-title {
+    display: inline;
+    position: absolute;
+    text-transform: uppercase;
+    font-size: 2.5em;
+    top: -27px;
+}
+
+
+/* Underline from center on hover - unstable, prone to not working randomly, new solution needed? */
+li a, nav ul.menu li.menu-item a.is-active {
     margin-bottom: 10px;
+    padding-bottom: 3px;
     background: 
     none,
     linear-gradient(to right, rgb(255, 255, 255), rgb(255, 255, 255), rgb(255, 255, 255));
-    background-size: 100% 0.15em, 0 0.15em;
+    background-size: 100% 0.22em, 0 0.22em;
       background-position: center 110%;
       background-repeat: no-repeat;
-    transition: background-size 700ms;
+    transition: background-size 400ms;
     }
     
-    a:hover, li.menu-item:hover,
-    a:focus, li.menu-item:focus {
-    background-size: 100% 0.15em, 30% 0.15em;
+    li a:hover, li a:focus,
+    nav ul.menu li.menu-item a.is-active:hover {
+    background-size: 100% 0.22em, 25% 0.22em;
+    }
+
+    a.social-media-link-icon--instagram, a.social-media-link-icon--pinterest,
+    a.social-media-link-icon--twitter, a.social-media-link-icon--facebook {
+        background-size: 100% 0.2em, 0 0.2em;
     }
 
     a.social-media-link-icon--instagram:hover, a.social-media-link-icon--pinterest:hover,
     a.social-media-link-icon--twitter:hover, a.social-media-link-icon--facebook:hover {
-        background-size: 100% 0.15em, 60% 0.15em;
+        background-size: 100% 0.2em, 65% 0.2em;
     }
 
 
@@ -178,8 +279,54 @@ a, li.menu-item {
         padding-left: 12px;
     }
 
+/* Content section */
+.column.main-content section.section {
+    padding-left: 40px;
+    padding-right: 40px;
+}
 
-/* Footer */
+/* image styling with subtitles */
+
+.field-content.prev-img {
+    position: absolute;
+}
+
+.views-field-title h1 {
+    position: relative;
+    color: #ffffff;
+}
+
+.view-row.views-row.clearfix.row-2 div div .prev-img, .row-2 .views-field-title {
+    margin: 24.5em 0;
+}
+
+.views-field h1.field-content {
+    font-size: 2em;
+    margin-top: 0;
+    top: 355px;
+    left: 40px;
+}
+
+.row-1 .col-4 .views-field h1.field-content {
+    width: 115px;
+}
+
+.views-view-grid .views-col {
+    padding-right: 0;
+}
+
+/* Fix for strange padding behaviour for views */
+@media (min-width: 640px) {
+    .views-view-grid .views-col {
+        padding: 0;
+    }
+}
+
+h1.field-content {
+    width: 170px;
+}
+
+/* Footer - social media link styling */
 
 .block-social-media-links.block-social-media-links-block {
     position: relative;
@@ -206,4 +353,207 @@ ul.social-media-links--platforms span.fa {
 
 .fa-facebook:before {
     content: url("../images/icon-facebook.svg");
+}
+
+/* Copyright notice */
+div#block-copyrightnotice-2 {
+    position: relative;
+    float: right;
+    bottom: 59px;
+}
+
+#block-copyrightnotice-2 div div.field--name-body {
+    font-weight: bold;
+}
+
+
+/* Mobile displays */
+
+div.prev-img-mobile {
+    display: none;
+}
+
+@media (max-width: 370px) {
+    header#header {
+        background-position: center;
+    }
+
+    header nav ul.menu {
+        display: none;
+    }
+
+    .site-branding__text .site-branding__slogan {
+        font-size: 2.5rem;
+        width: 84%;
+        padding: 0.5em 30px 0.5em 0.5em;
+    }
+
+    .site-branding__logo img {
+        padding-bottom: 0;
+    }
+
+    .column.main-content section.section {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    div.prev-img-mobile {
+        display: block;
+    }
+    div.prev-img {
+        display: none;
+    }
+
+    div.row-1 .views-field.views-field-title h1.field-content, div.row-2 .views-field.views-field-title h1.field-content {
+        font-size: 1.8em;
+        margin-top: 0;
+        top: 100px;
+        z-index: 1000;
+        left: 30px;
+    }
+    h1.field-content {
+        width: 161px;
+    }
+    .row-1 .col-4 .views-field h1.field-content {
+        width: 110px;
+    }
+
+    div.views-field.views-field-title {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    div div.view-row.views-row.clearfix.row-2 {
+        padding-bottom: 0;
+    }
+
+    button.see-all-button {
+        margin: 0 auto;
+        position: relative;
+        top: 1655px;
+        float: none;
+    }
+
+    #content > section {
+        padding-bottom: 120px;
+    }
+
+    /* Footer logo and centering everything */
+
+    div#block-sitebranding-3, div#block-socialmedialinks .content, li.menu-item a {
+        position: static;
+        text-align: center;
+    }
+
+    .site-branding__logo img, .social-media-links--platforms, ul.social-media-links--platforms, div#block-socialmedialinks .content ul {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+
+    a.site-branding__logo {
+        margin-right: 0;
+    }
+
+    div#block-copyrightnotice-2 {
+        width: 100%;
+        text-align: center;
+        position: static;
+        float: none;
+    }
+
+    li a:hover, li a:focus,
+    nav ul.menu li.menu-item a.is-active:hover {
+    background-size: 100% 0.22em, 5% 0.22em;
+    }
+    
+
+    /* Footer social medias */
+    .block-social-media-links.block-social-media-links-block {
+        position: static;
+        top: 0;
+    }
+
+    .social-media-links--platforms.horizontal li {
+        float: none;
+    }
+
+    /* Footer nav  */
+
+    .site-footer__bottom .menu-item a {
+        float: none;
+    }
+
+    ul.clearfix.menu li.menu-item {
+        display: block;
+    }
+
+    nav#block-mainnavigation-2 ul.menu {
+        list-style: none;
+    }
+
+
+    /* Leader in VR section */
+
+    h2.leader-vr-heading {
+        font-size: 2.2em;
+    }
+
+    p.leader-vr-paragraph {
+        text-align: center;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    div.leader-vr-container {
+        float: none;
+        position: static;
+        width: auto;
+        padding: 5px 0 0 0;
+        text-align: center;
+    }
+    
+    #block-copyrightnotice-2 div div.field--name-body {
+        font-weight: normal;
+    }
+}
+
+
+/* Fixing broken display */
+
+.view-row.views-row.clearfix.row-2 div div .prev-img, .row-2 .views-field-title {
+    margin: -2.8em 0;
+}
+
+.view-row.views-row.clearfix.row-2 div div .prev-img, .row-2 .views-field-title {
+    margin: -2.8em 0;
+}
+
+
+div.row-1 .views-field h1.field-content {
+    font-size: 2em;
+    margin-top: 0;
+    top: 430px;
+    z-index: 1000;
+    left: 40px;
+}
+
+div.row-2 .views-field h1.field-content {
+    font-size: 2em;
+    margin-top: 0;
+    top: 660px;
+    z-index: 1000;
+    left: 40px;
+}
+
+div.view-row.views-row.clearfix.row-2 {
+    padding-bottom: 560px;
+}
+
+.view-row.views-row.clearfix.row-2 div div .prev-img, .row-2 .views-field-title {
+    margin: 8.2em 0;
+}
+
+#block-loopstudiostheme-content > div > div > div > div.view-content > div > div.view-row.views-row.clearfix.row-1 {
+    padding-top: 0;
 }

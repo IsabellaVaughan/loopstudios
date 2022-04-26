@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * @file
+ * Database schema for image replace module.
+ */
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_schema().
+ */
+function image_replace_schema() {
+  $schema['image_replace'] = [
+    'description' => 'Stores a map of image replacements for certain styles.',
+    'fields' => [
+      'target_style' => [
+        'description' => 'The style machine name.',
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'target_uri_hash' => [
+        'description' => 'Hash of target uris. Used as part of primary key',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'replacement_uri' => [
+        'description' => 'The replacement URI to use instead.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'binary' => TRUE,
+      ],
+    ],
+    'primary key' => ['target_style', 'target_uri_hash'],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Increase the index-length on the target_uri.
+ */
+function image_replace_update_8101(&$sandbox) {
+  $schema = Database::getConnection()->schema();
+  $schema->dropPrimaryKey('image_replace');
+  $schema->changeField('image_replace', 'target_uri', 'target_uri', [
+    'description' => 'The original URI to access the file.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    'binary' => TRUE,
+  ]);
+  $schema->changeField('image_replace', 'replacement_uri', 'replacement_uri', [
+    'description' => 'The replacement URI to use instead.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    'binary' => TRUE,
+  ]);
+  $schema->addPrimaryKey('image_replace',
+    ['target_style', ['target_uri', 191]]);
+}
+
+/**
+ * Switch to hash based key system.
+ */
+function image_replace_update_8102(&$sandbox) {
+  $database = Database::getConnection();
+
+  $image_replace_dataset = $database->select('image_replace')
+    ->fields('image_replace', [
+      'target_style',
+      'target_uri',
+      'replacement_uri',
+    ])
+    ->condition('target_uri', '', '<>')
+    ->execute()
+    ->fetchAll();
+
+  $schema = $database->schema();
+
+  if (!$schema->fieldExists('image_replace', 'target_uri_hash')) {
+    $schema->addField('image_replace', 'target_uri_hash', [
+      'type' => 'varchar',
+      'length' => '64',
+      'not null' => TRUE,
+      'default' => '',
+      'description' => 'Hash of target uris. Used as part of primary key',
+    ]);
+  }
+
+  // Convert existing entries over to hash.
+  foreach ($image_replace_dataset as $key => $data) {
+    $target_uri_hash = hash('sha256', $data->target_uri);
+    $database->update('image_replace')
+      ->fields(['target_uri_hash' => $target_uri_hash])
+      ->condition('target_style', $data->target_style)
+      ->condition('target_uri', $data->target_uri)
+      ->execute();
+  }
+
+  $schema->dropPrimaryKey('image_replace');
+  $schema->dropField('image_replace', 'target_uri');
+  $schema->addPrimaryKey('image_replace', ['target_style', 'target_uri_hash']);
+}

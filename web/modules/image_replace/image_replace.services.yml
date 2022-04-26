@@ -1,0 +1,4 @@
+services:
+  image_replace.storage:
+    class: Drupal\image_replace\ImageReplaceDatabaseStorage
+    arguments: ['@database']
