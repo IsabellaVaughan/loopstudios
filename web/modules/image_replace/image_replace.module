@@ -1,0 +1,209 @@
+<?php
+
+/**
+ * @file
+ * Provides an image style effect replacing the whole image with another one.
+ */
+
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\image\Entity\ImageStyle;
+use Drupal\image\ImageStyleInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter() for 'field_config_edit_form'.
+ *
+ * Add per image-field instance settings for image style replacement.
+ */
+function image_replace_form_field_config_edit_form_alter(&$form, &$form_state, $form_id) {
+  $field = $form_state->getFormObject()->getEntity();
+  if ($field->getType() == 'image') {
+    $form['third_party_settings']['image_replace'] = [
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Image replace'),
+      '#description' => t('Use another image when rendered with certain image styles.'),
+      '#weight' => 99,
+      '#tree' => TRUE,
+      '#element_validate' => ['image_replace_form_field_config_edit_form_element_validate'],
+    ];
+
+    $image_field_options = array_map(function($replacement_field) {
+      return $replacement_field->label();
+    }, _image_replace_image_fields($field->getTargetEntityTypeId(), $field->getTargetBundle()));
+    unset($image_field_options[$field->getName()]);
+
+    $image_style_map = $field->getThirdPartySetting('image_replace', 'image_style_map', []);
+    foreach (_image_replace_style_options() as $image_style => $label) {
+      $default_value = isset($image_style_map[$image_style]['source_field']) ? $image_style_map[$image_style]['source_field'] : NULL;
+      $form['third_party_settings']['image_replace']['image_style_map'][$image_style]['source_field'] = [
+        '#type' => 'select',
+        '#title' => $label,
+        '#description' => t('The image field to use as a source when rendered with the %style image style.', ['%style' => $label]),
+        '#options' => $image_field_options,
+        '#default_value' => $default_value,
+        '#empty_value' => FALSE,
+      ];
+
+      if ($default_value) {
+        $form['third_party_settings']['image_replace']['#collapsed'] = FALSE;
+      }
+    }
+  }
+}
+
+/**
+ * Form element validation callback.
+ *
+ * Displays a warning when replacement mapping is changed for fields with
+ * existing content.
+ */
+function image_replace_form_field_config_edit_form_element_validate($element, &$form_state, $form) {
+  $field = $form_state->getFormObject()->getEntity();
+  $field_storage = FieldStorageConfig::loadByName($field->getTargetEntityTypeId(), $field->getName());
+  if ($field_storage->hasData()) {
+    $changed = FALSE;
+
+    foreach (array_keys(_image_replace_style_options()) as $image_style) {
+      $current_value = $element['image_style_map'][$image_style]['source_field']['#default_value'];
+      $new_value = $element['image_style_map'][$image_style]['source_field']['#value'];
+      if (!(empty($current_value) && empty($new_value)) && $current_value != $new_value) {
+        $changed = TRUE;
+        break;
+      }
+    }
+
+    if ($changed) {
+      $messenger = \Drupal::messenger();
+      $messenger->addWarning(t('The image replacement settings have been modified. As a result, it is necessary to rebuild the image replacement mapping for existing content. Note: The replacement mapping is updated automatically when saving an entity. Content can be resaved in bulk using the <em>save content</em> of the <a href="@content_url">administrative interface</a>', ['@content_url' => '/admin/content']));
+      $messenger->addWarning(t('Also note that images already might be cached in the browser or by any intermediate HTTP cache. On live sites the only way to force browsers to redownload a cached image is to reupload the image with a different name.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_presave().
+ *
+ * Insert image mappings into the image replace table when entities are saved.
+ */
+function image_replace_entity_presave(EntityInterface $entity) {
+  if (!($entity instanceof ContentEntityInterface)) {
+    return;
+  }
+
+  // Collect involved image fields and target mapping from image instance
+  // settings.
+  $involved_fields = [];
+  $target_map = [];
+
+  foreach (_image_replace_image_fields($entity->getEntityTypeId(), $entity->bundle()) as $target_field => $field) {
+    if ($field && $source_map = $field->getThirdPartySetting('image_replace', 'image_style_map', [])) {
+      $involved_fields[$target_field] = $target_field;
+      foreach ($source_map as $target_style => $record) {
+        $source_field = $record['source_field'];
+        $target_map[$target_field][$target_style] = $source_field;
+        $involved_fields[$source_field] = $source_field;
+      }
+    }
+  }
+
+  // Extract all uris from all involved image fields.
+  $uri_map = [];
+  foreach ($involved_fields as $field_name) {
+    $uri_map[$field_name] = [];
+    if (!empty($entity->{$field_name})) {
+      foreach ($entity->{$field_name} as $image) {
+        $uri_map[$field_name][] = $image->entity->getFileUri();
+      }
+    }
+  }
+
+  // Synchronize image replacement entries.
+  $storage_service = \Drupal::service('image_replace.storage');
+  foreach ($target_map as $target_field => $source_map) {
+    foreach ($source_map as $target_style => $source_field) {
+      foreach ($uri_map[$target_field] as $delta => $target_uri) {
+        $storage_service->remove($target_style, $target_uri);
+        if (isset($uri_map[$source_field][$delta])) {
+          $storage_service->add($target_style, $target_uri, $uri_map[$source_field][$delta]);
+        }
+      }
+    }
+  }
+
+  // Flush derived images.
+  foreach ($uri_map as $uris) {
+    foreach ($uris as $uri) {
+      image_path_flush($uri);
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ *
+ * Save image style name into replace effect settings in order to make the style
+ * name available from within image_replace_effect callback.
+ */
+function image_replace_image_style_presave(ImageStyleInterface $image_style) {
+  $effects = $image_style->get('effects');
+  foreach ($image_style->get('effects') as $key => $effect) {
+    if ($effect['id'] == 'image_replace') {
+      $effects[$key]['data']['image_style'] = $image_style->getName();
+    }
+  }
+  $image_style->set('effects', $effects);
+}
+
+/**
+ * Collect info for all image field instances on a given entity_type/bundle.
+ *
+ * @param string $entity_type
+ *   The entity type, e.g. node, for which the info shall be returned.
+ * @param string $bundle
+ *   The bundle name for which to return instances.
+ *
+ * @return array
+ *   An associative array of instance arrays keyed by the field name.
+ */
+function _image_replace_image_fields($entity_type, $bundle) {
+  $image_fields = [];
+
+  $field_definitions = \Drupal::service('entity_field.manager')
+    ->getFieldDefinitions($entity_type, $bundle);
+  foreach ($field_definitions as $field_name => $field_definition) {
+    if ($field_definition->getType() == 'image') {
+      $field_config = FieldConfig::loadByName(
+        $entity_type, $bundle, $field_name);
+      if (isset($field_config)) {
+        $image_fields[$field_name] = $field_config;
+      }
+    }
+  }
+
+  return $image_fields;
+}
+
+/**
+ * Return a list of image replace enabled style => label map.
+ *
+ * @return array
+ *   A key-value list where keys are style names and values are style labels of
+ *   image styles having a replace effect configured.
+ */
+function _image_replace_style_options() {
+  $styles = ImageStyle::loadMultiple();
+  $result = [];
+  foreach ($styles as $style_name => $style) {
+    foreach ($style->getEffects() as $effect) {
+      if ($effect->getPluginId() == 'image_replace') {
+        $result[$style_name] = Html::escape($style->get('label'));
+      }
+    }
+  }
+  return $result;
+}
